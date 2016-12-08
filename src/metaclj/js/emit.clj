@@ -2,15 +2,16 @@
   (:require [metaclj.js.core :as js]
             [fipp.engine :refer [pprint-document]]))
 
-;;XXX emit a "'use strict';" somewhere!
+;;XXX emit a "'use strict';" somewhere! Safari needs it for tail calls.
 
 (defmulti pretty :head)
 
+;;XXX The ast needs more context!
 (defn needs-parens? [ast]
   (case (:head ast)
-    (:literal :local) false
-    :array false ;XXX Sometimes false?
-    :object true ;XXX Sometimes true!
+    (:literal :local) false ;XXX There are others.
+    :array false ;XXX Sometimes true?
+    (:object :function) true ;XXX Sometimes false!
     true))
 
 (defn pexpr [ast]
@@ -42,14 +43,14 @@
 (defmethod pretty :literal [{:keys [value]}]
   (-pretty value))
 
-(defmethod pretty :local [{:keys [sym]}]
-  (-pretty sym))
+(defmethod pretty :local [{:keys [rename]}]
+  (-pretty rename))
 
 (defn statement-class [{:keys [head]}]
   (cond
-    (#{`js/for `js/while `js/if} head) :bodied
+    (#{`js/for `js/while `js/if `js/function} head) :bodied
     (#{`js/return `js/let `js/set! `js/break `js/continue
-       `js/++ `js/debugger} head) :terminated
+       `js/++ `js/debugger :invoke} head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
 (defn pstmt [ast]
@@ -88,11 +89,8 @@
 (defmethod pretty :block [{:keys [stmts]}]
   [:group "{" [:nest :break (map pstmt stmts)] "}"])
 
-(defmethod pretty :local [{:keys [sym]}]
-  (-pretty sym))
-
 (defmethod pretty `js/let [{:keys [sym init]}]
-  [:group "let " (-pretty sym) " = " (pretty init)])
+  [:group "let " (-pretty sym) " = " (pexpr init)])
 
 (defmethod pretty `js/for [{:keys [init test step body]}]
   [:group "for (" [:nest [:line ""]
@@ -136,7 +134,7 @@
 (defmethod pretty `js/set! [{:keys [place init]}]
   [:span (pretty place) " = " (pretty init)])
 
-(defmethod pretty `js/fn [{:keys [name params body]}]
+(defmethod pretty `js/function [{:keys [name params body]}]
   [:group "function" (when name [:span " " (-pretty name)])
           "(" (interpose [:span "," :line] (map -pretty params)) ") "
           (pretty body)])

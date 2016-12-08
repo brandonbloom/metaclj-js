@@ -9,7 +9,7 @@
 
 (env/declare-specials
   do comma if while ++ for break continue
-  return debugger set! let fn strict-infix
+  return debugger set! let function strict-infix
 )
 
 ;(defsyntax def (s/cat :name symbol? :init ::js/quote)
@@ -33,4 +33,8 @@
 
 ;; Creates an "Immediately Invoked Function Expression".
 (defsyntax iife (s/* any?)
-  (js ((fn [] ~@%))))
+  (js ((function [] ~@%))))
+
+;; Kinda like the => syntax, but doesn't bind this.
+(defsyntax fn (s/cat :args vector? :expr any?)
+  (js (function ~(:args %) (return ~(:expr %)))))

@@ -126,8 +126,8 @@
   ;;TODO: destructuring.
   (conform! (s/cat :head #{`js/let} :sym symbol? :init any?) form))
 
-(defmethod parse-seq `js/fn [form]
-  (conform! (s/cat :head #{`js/fn}
+(defmethod parse-seq `js/function [form]
+  (conform! (s/cat :head #{`js/function}
                    :name (s/? symbol?)
                    :params (s/coll-of symbol? :kind vector?)
                    :body ::block)

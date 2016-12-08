@@ -102,6 +102,31 @@
       (if false [(debugger)]))
     undefined
 
+    (iife
+      (let x 1)
+      (function x [])
+      (return x))
+    1
+
+    (iife
+      (let f
+        (function f [x]
+          (if (< x 2) [(return (f (+ x 1)))]
+            [(return x)])))
+      (return (f 0)))
+    2
+
+    (iife
+      (let g
+        (function f [x]
+          (if (< x 4) [(return (f (+ x 1)))]
+            [(return x)])))
+      (return (g 0)))
+    4
+
+    ((fn [x y] [y x]) "a" "b")
+    ["b" "a"]
+
     ))
 
 (deftest cross-stage-test
@@ -114,8 +139,8 @@
 
   (time
     (js/eval
-      {"x b" 1}
-    ))
+      ((fn [x y] [y x]) "a" "b")
+      ))
 
 )
 
@@ -126,21 +151,6 @@
   (party (js (for [nil (< 1 2) nil] 3)))
   (party (js (for [(let x 1) (< x 2) (++ x)] 3 4)))
   (party (js (for [(let x 1) (do nil (< x 2)) (++ x)] 3 4)))
-  (party (js (fn [])))
-  (party (js (fn [x] x)))
-  (party (js (fn [x] (++ x) x)))
-  (party (js (fn abc [x y] 1)))
-  (party (js (do (let f (fn [x] x)) (f 1))))
-  (party (js (inc 2)))
-  (party (js (def x 1)))
-
-  (party (js
-    (do
-      (let x 1)
-      (for [(let y 1) (< y 4) (++ y)]
-        (set! x (* x y)))
-      x)
-    ))
 
   ;; expected parse errors
   (party (js ()))

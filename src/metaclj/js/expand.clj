@@ -138,10 +138,14 @@
       (update :place place)
       (update :init eval)))
 
-(defmethod exec-head `js/fn [{:keys [name params body] :as ast}]
+(defmethod exec-head `js/function [{:keys [name params body] :as ast}]
   (scope
-    (run! env/declare-local params)
-    (update ast :body reify block)))
+    (let [name (when name
+                 (env/declare-local name (gensym (str name "$"))))]
+      (run! env/declare-local params)
+      (-> ast
+          (assoc :name name)
+          (update :body reify block)))))
 
 (defn expand-macro [{:keys [form] :as ast} {:keys [sym f spec] :as macro}]
   (when-let [ed (s/explain-data spec (next form))]
@@ -157,7 +161,7 @@
   (let [resolved (env/resolve f)]
     (case (:head resolved)
       :clojure (error (str "cannot invoke Clojure var " (:sym resolved)) ast)
-      ;XXX :local (-> ast (assoc :f resolved) (update :args #(mapv eval %)))
+      :local (-> ast (assoc :f resolved) (update :args #(mapv eval %)))
       :macro (expand-macro ast resolved))))
 
 (defmethod exec-head :apply [ast]

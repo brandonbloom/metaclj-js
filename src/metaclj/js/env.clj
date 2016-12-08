@@ -75,10 +75,12 @@
 (defn qualify [sym]
   (-> sym resolve :sym))
 
-(defn declare-local [sym]
-  {:pre [(and (symbol? sym) (nil? (namespace sym)))]}
-  (change *env* assoc sym {:head :local :sym sym})
-  val)
+(defn declare-local
+  ([sym] (declare-local sym sym))
+  ([sym rename]
+   {:pre [(and (symbol? sym) (nil? (namespace sym)))]}
+   (change *env* assoc sym {:head :local :sym sym :rename rename})
+   rename))
 
 (defn define-var* [ns sym v]
   (let [qsym (symbol (str ns) (name sym))
