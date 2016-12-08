@@ -80,8 +80,13 @@
 (defmethod pretty `js/++ [{:keys [place]}]
   [:span "++" (pretty place)])
 
-(defmethod pretty `js/return [{:keys [value]}]
-  [:span "return " (pexpr value)])
+(defmethod pretty `js/return [{:keys [exprs]}]
+  [:span "return" (when (seq exprs)
+                    (assert (= (count exprs) 1))
+                    [:span " " (pexpr (first exprs))])])
+
+(defmethod pretty `js/void [{:keys [expr]}]
+  [:span "void " (pexpr expr)])
 
 (defmethod pretty `js/comma [{:keys [exprs]}]
   [:group (interpose [:span "," :line] (map pexpr exprs))])

@@ -23,6 +23,7 @@
     false false
 
     (* 2 4)  8
+    (void 0) undefined
 
     [] []
     ["x" "y"] ["x" "y"]
@@ -30,6 +31,10 @@
     {} {}
     {"x" "a"} {"x" "a"}
     {"x y" "a"} {"x y" "a"}
+
+    ;(iife
+    ;  (return))
+    ;undefined
 
     (iife
       (return 1))
@@ -139,7 +144,7 @@
 
   (time
     (js/eval
-      ((fn [x y] [y x]) "a" "b")
+      (iife (return 1))
       ))
 
 )

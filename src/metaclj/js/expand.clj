@@ -170,5 +170,8 @@
       (update :f expression)
       (update :args #(mapv expression %))))
 
-(defmethod exec-head `js/return [{:keys [value]}]
-  {:head `js/return :value (expression value)})
+(defmethod exec-head `js/return [{:keys [exprs] :as ast}]
+  {:head `js/return :exprs (mapv expression exprs)})
+
+(defmethod exec-head `js/void [{:keys [expr]}]
+  {:head `js/void :expr (expression expr)})

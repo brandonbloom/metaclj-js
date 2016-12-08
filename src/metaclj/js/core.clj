@@ -8,7 +8,7 @@
 (alias 'js 'metaclj.js.core)
 
 (env/declare-specials
-  do comma if while ++ for break continue
+  do comma void if while ++ for break continue
   return debugger set! let function strict-infix
 )
 

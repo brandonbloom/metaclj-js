@@ -75,7 +75,13 @@
   (extend t Form {:-parse parse-literal}))
 
 (defmethod parse-seq `js/return [form]
-  (conform! (s/cat :head #{`js/return} :value any?)
+  (-> (conform! (s/cat :head #{`js/return}
+                       :exprs (s/& (s/* any?) #(<= (count %) 1)))
+                form)
+      (update :exprs vec)))
+
+(defmethod parse-seq `js/void [form]
+  (conform! (s/cat :head #{`js/void} :expr any?)
             form))
 
 (s/def ::block (s/* any?))
