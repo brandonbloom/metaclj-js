@@ -4,16 +4,17 @@
             [clojure.spec :as s]
             [metaclj.util :refer :all]))
 
+(defrecord Env [ns])
+
 (def ^:dynamic *env*)
 
 (defmacro with [env & body]
   `(binding [*env* ~env]
+     (assert (instance? Env *env*))
      ~@body))
 
 (defmacro scope [& body]
   `(with *env* ~@body))
-
-(defrecord Env [ns])
 
 (defonce namespaces (atom {}))
 

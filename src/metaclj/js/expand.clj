@@ -50,21 +50,30 @@
 (defn expand [x]
   {:pre [(quote? x)]}
   ;;XXX (multiple!) statements vs expressions
-  (eval x))
+  (env/with (env/dynamic)
+    (eval x)))
 
 (defmethod exec-head :literal [ast]
   ast)
 
+;;XXX This indicates to me that I haven't quite figured
+;; out how to deal with chains of lexical scopes.
+(def ^:dynamic *lets*)
+
 (defmethod exec-head :quote [{:keys [forms env] :as ast}]
   (when (not= (count forms) 1)
     (error "splicing quotes not yet implemented" ast)) ;;XXX
-  (env/with env
-    (-> forms first eval)))
+  (let [[ret lets] (env/with (merge env/*env* env)
+                     (binding [*lets* {}]
+                       [(-> forms first exec) *lets*]))]
+    (doseq [[k v] lets]
+      (env/declare-local k v))
+    ret))
 
 (defmethod exec-head :symbol [{:keys [sym] :as ast}]
   (let [resolved (env/resolve sym)]
     (case (:head resolved)
-      :static (-> resolved :value expression)
+      :static (-> resolved :value exec)
       :local resolved
       (error "Unexpected resolve result" ast :resolved resolved))))
 
@@ -121,8 +130,10 @@
   (block body))
 
 (defmethod exec-head `js/let [{:keys [sym] :as ast}]
-  (env/declare-local sym)
-  (update ast :init expression))
+  (change *lets* assoc sym sym)
+  (let [ast* (update ast :init expression)]
+    (env/declare-local sym)
+    ast*))
 
 (defmethod exec-head `js/break [ast]
   ast)

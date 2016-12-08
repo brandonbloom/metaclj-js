@@ -145,13 +145,28 @@
     (is (js= (js/eval m) {"a" "b"})))
   )
 
+(deftest meta-symbol-test
+
+  (let [x (gensym)]
+    (is (js= (js/eval
+                (iife
+                  (let ~x 1)
+                  (return x)))
+             1)))
+
+   (let [x (gensym)
+         a (js (let ~x 2))
+         b (js (return x))]
+     (is (js= (js/eval (iife a b))
+              2)))
+
+  )
+
 
 (comment
 
   (time
-    (let [xs ["a" "b"]]
-      (is (js= (js/eval xs)) ["a" "b"]))
-      )
+    )
 
 )
 
