@@ -33,7 +33,7 @@ This evaluates to `120` and is compiled as:
 ```javascript
 (function(){
   let x = 1;
-  for (let y = 1; y <= 5; ++y){
+  for (let y = 1; y <= 5; ++y) {
     x = x * y;
   };
   return x;

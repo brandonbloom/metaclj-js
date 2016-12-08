@@ -6,6 +6,8 @@
 
 (js/require 'metaclj.js.core :refer :all)
 
+(def undefined (org.mozilla.javascript.Undefined/instance))
+
 (defn js= [x y]
   (if (or (number? x) (number? y))
     (== x y)
@@ -14,10 +16,20 @@
 (deftest eval-test
   (are [form expected] (js= (js/eval form) expected)
 
-    nil  nil
-    "x"  "x"
-    1    1
+    nil   nil
+    "x"   "x"
+    1     1
+    true  true
+    false false
+
     (* 2 4)  8
+
+    [] []
+    ["x" "y"] ["x" "y"]
+
+    {} {}
+    {"x" "a"} {"x" "a"}
+    {"x y" "a"} {"x y" "a"}
 
     (iife
       (return 1))
@@ -41,6 +53,55 @@
       (return x))
     120
 
+    (iife
+      (let x 2)
+      (while (<= x 10)
+        (set! x (* x x)))
+      (return x))
+    16
+
+    (iife
+      (if true [(return 1)]))
+    1
+
+    (iife
+      (if true [(return 1)]
+          false [(return 2)]
+          [(return 3)]))
+    1
+
+    (iife
+      (if false [(return 1)]
+          true [(return 2)]
+          [(return 3)]))
+    2
+
+    (iife
+      (if false [(return 1)]
+          false [(return 2)]
+          [(return 3)]))
+    3
+
+    (iife
+      (if false [(return 1)]
+          false [(return 2)]
+          [(return 3)]))
+    3
+
+    (iife
+      (let x 0)
+      (while true
+        (++ x)
+        (if
+          (< x 3) [(continue)]
+          [(break)]))
+      (return x))
+    3
+
+    (iife
+      (if false [(debugger)]))
+    undefined
+
     ))
 
 (deftest cross-stage-test
@@ -51,58 +112,20 @@
 
 (comment
 
-  (js/eval (iife (let x 2) (return (* x 3))))
-
-  (let [n 5]
-    (time
-      (js/eval
-        (iife
-          (let x 1)
-          (for [(let y 1) (<= y n) (++ y)]
-            (set! x (* x y)))
-          (return x)
-          ))))
+  (time
+    (js/eval
+      {"x b" 1}
+    ))
 
 )
 
 (comment
-
-  (clj/require 'fipp.edn)
-  (clj/require 'fipp.clojure)
-  (defn party [x]
-    ;(->> x :forms first fipp.clojure/pprint)
-    ;(->> x :forms first (metaclj.js.parse/parse-in (env/dynamic)) fipp.edn/pprint)
-    (->> x expand fipp.edn/pprint)
-    ;(->> x expand emit)
-    )
-
-  (party (js nil))
-  (party (js 1))
-  (party (js "foo"))
-  (party (js true))
-  (party (js (return 1)))
   (party (js js/x))
   (party (let [x 1] (js x)))
   (party (let [x 1] (js ~x)))
-  (party (js (* 2 4)))
-  (party (js (while (< 1 2) 3 4)))
-  (party (js (if ["a" 1])))
-  (party (js (if ["a" 1] ["b" 3])))
-  (party (js (if ["a" 1 2] ["b" 3 4] 5)))
-  (party (js (let x 1)))
   (party (js (for [nil (< 1 2) nil] 3)))
   (party (js (for [(let x 1) (< x 2) (++ x)] 3 4)))
   (party (js (for [(let x 1) (do nil (< x 2)) (++ x)] 3 4)))
-  (party (js []))
-  (party (js [1 2 3]))
-  (party (js {}))
-  (party (js {"x" 1}))
-  (party (js {"x" 1 "y" 2}))
-  (party (js (break)))
-  (party (js (continue)))
-  (party (js (debugger)))
-  (party (js (++ x)))
-  (party (js (set! x 1)))
   (party (js (fn [])))
   (party (js (fn [x] x)))
   (party (js (fn [x] (++ x) x)))

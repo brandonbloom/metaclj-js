@@ -84,13 +84,12 @@
   (conform! (s/cat :head #{`js/while} :test any? :body ::block)
             form))
 
-(s/def ::if-clause (s/and vector?
-                          (s/cat :test any? :then ::block)))
+(s/def ::if-clause (s/cat :test any? :then (s/and vector? ::block)))
 
 (defmethod parse-seq `js/if [form]
   (conform! (s/cat :head #{`js/if}
                    :clauses (s/+ ::if-clause)
-                   :else (s/* any?))
+                   :else (s/? (s/and vector? ::block)))
             form))
 
 (s/def ::for-control

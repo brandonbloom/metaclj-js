@@ -6,8 +6,20 @@
 
 (defmulti pretty :head)
 
+(defn needs-parens? [ast]
+  (case (:head ast)
+    (:literal :local) false
+    :array false ;XXX Sometimes false?
+    :object true ;XXX Sometimes true!
+    true))
+
+(defn pexpr [ast]
+  (if (needs-parens? ast)
+    [:group "(" (pretty ast) ")"]
+    (pretty ast)))
+
 (defn emit [x]
-  (-> x pretty (pprint-document {:width 120})))
+  (-> x pexpr (pprint-document {:width 120})))
 
 (defprotocol Literal
   (-pretty [x]))
@@ -33,43 +45,48 @@
 (defmethod pretty :local [{:keys [sym]}]
   (-pretty sym))
 
-(defn expression [ast]
-  (if (#{:literal} (:head ast)) ;TODO: Other cases too.
-    (pretty ast)
-    [:group "(" (pretty ast) ")"]))
+(defn statement-class [{:keys [head]}]
+  (cond
+    (#{`js/for `js/while `js/if} head) :bodied
+    (#{`js/return `js/let `js/set! `js/break `js/continue
+       `js/++ `js/debugger} head) :terminated
+    :else (throw (ex-info "Unknown statement class" {:head head}))))
+
+(defn pstmt [ast]
+  [:span (pretty ast)
+         (case (statement-class ast)
+           :bodied :break
+           :terminated [:span ";" :break])])
 
 (defmethod pretty `js/while [{:keys [test body]}]
-  [:group "while (" (pretty test) [:line ""] ")" (pretty body) :break])
+  [:group "while (" (pretty test) [:line ""] ") " (pretty body) :break])
 
 (defmethod pretty `js/strict-infix [{:keys [op lhs rhs]}]
   ;;XXX handle precidence & associativity.
   [:group "(" (pretty lhs) " " op " " (pretty rhs) ")"])
 
 (defn pretty-if-clause [{:keys [test then]}]
-  [:span " (" (pretty test) ")" (pretty then)])
+  [:span "(" (pretty test) ") " (pretty then)])
 
 (defmethod pretty `js/if [{:keys [clauses else]}]
   (let [[test & elifs] clauses]
-    [:span "if" (pretty-if-clause test)
+    [:span "if " (pretty-if-clause test)
            (for [elif elifs]
-             [:span " elseif" (pretty-if-clause elif)])
+             [:span " else if " (pretty-if-clause elif)])
            (when else
-             [:span " else" (pretty else)])]))
+             [:span " else " (pretty else)])]))
 
 (defmethod pretty `js/++ [{:keys [place]}]
   [:span "++" (pretty place)])
 
 (defmethod pretty `js/return [{:keys [value]}]
-  [:span "return " (expression value)])
+  [:span "return " (pexpr value)])
 
 (defmethod pretty `js/comma [{:keys [exprs]}]
-  [:group (interpose [:span "," :line] (map expression exprs))])
+  [:group (interpose [:span "," :line] (map pexpr exprs))])
 
 (defmethod pretty :block [{:keys [stmts]}]
-  [:group "{" [:nest :break
-                     (interleave (map pretty stmts)
-                                 (repeat [:span ";" :break]))]
-          "}"])
+  [:group "{" [:nest :break (map pstmt stmts)] "}"])
 
 (defmethod pretty :local [{:keys [sym]}]
   (-pretty sym))
@@ -82,7 +99,7 @@
                     (pretty init) ";" :line
                     (pretty test) ";" :line
                     (pretty step) [:line ""]]
-          ")" (pretty body)])
+          ") " (pretty body)])
 
 (defmethod pretty :array [{:keys [items]}]
   [:group "[" [:line ""]
@@ -91,11 +108,19 @@
           [:line "" ","]
           "]"])
 
+(defn valid-ident? [x]
+  (->> x name (re-matches #"(?i)[a-z_][a-z0-9_]*") boolean))
+
+(defn pretty-key [x]
+  (-pretty (if (valid-ident? x)
+             (symbol x)
+             (name x))))
+
 (defmethod pretty :object [{:keys [items]}]
   [:group "{" [:line ""]
           [:nest (interpose [:span "," :line]
                             (for [[k v] items]
-                              [:span (-pretty k) ": " (pretty v)]))]
+                              [:span (pretty-key k) ": " (pretty v)]))]
           [:line "" ","]
           "}"])
 
@@ -113,10 +138,10 @@
 
 (defmethod pretty `js/fn [{:keys [name params body]}]
   [:group "function" (when name [:span " " (-pretty name)])
-          "(" (interpose [:span "," :line] (map -pretty params)) ")"
+          "(" (interpose [:span "," :line] (map -pretty params)) ") "
           (pretty body)])
 
 (defmethod pretty :invoke [{:keys [f args]}]
-  [:group (expression f) "("
-          (interpose [:span "," :line] (map expression args))
+  [:group (pexpr f) "("
+          (interpose [:span "," :line] (map pexpr args))
           ")"])

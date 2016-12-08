@@ -22,4 +22,4 @@
 
 (defmacro eval [form]
   (let [q (with-meta `(js ~form) (meta &form))]
-    `(eval-string (with-out-str (compile-out ~q)))))
+    `(eval-string (doto (with-out-str (compile-out ~q)) println))))
