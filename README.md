@@ -15,6 +15,8 @@ working on. I've only published this for the curious.
 Here's a small example without any of the context you'd need to understand it:
 
 ```clojure
+(require '[metaclj.js :as js :refer [js]])
+
 (js/require 'metaclj.js.core :refer :all)
 
 (let [n 5]

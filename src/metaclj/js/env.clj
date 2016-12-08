@@ -42,7 +42,7 @@
   (let [ns (some-> sym namespace symbol)
         ns (if ns
              (ns-name ((ns-aliases (:ns env)) ns ns))
-             (-> env :ns))
+             (:ns env))
         nm (-> sym name symbol)]
     (some-> (get-in @namespaces [ns nm]) deref)))
 
@@ -56,6 +56,7 @@
 
 (defn resolve-in [env sym]
   (assert (:ns env))
+  (dbg 'resolve-in env sym)
   (or (resolve-local env sym)
       (resolve-js env sym)
       (resolve-clj env sym)
