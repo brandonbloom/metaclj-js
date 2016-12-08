@@ -21,3 +21,7 @@
 (defn eval-string [s]
   (with-context ctx
     (.evaluateString ctx scope s "<clj>" 1 nil)))
+
+(comment
+  (eval-string "this")
+)

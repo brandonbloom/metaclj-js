@@ -137,15 +137,21 @@
 (deftest cross-stage-test
   (let [x 1]
     (is (js= (js/eval x) 1)))
+  (let [x (js 1)]
+    (is (js= (js/eval x) 1)))
+  (let [xs ["a" "b"]]
+    (is (js= (js/eval xs) ["a" "b"])))
+  (let [m {"a" "b"}]
+    (is (js= (js/eval m) {"a" "b"})))
   )
 
 
 (comment
 
   (time
-    (js/eval
-      (iife (return 1))
-      ))
+    (let [xs ["a" "b"]]
+      (is (js= (js/eval xs)) ["a" "b"]))
+      )
 
 )
 

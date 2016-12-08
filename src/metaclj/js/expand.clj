@@ -64,7 +64,7 @@
 (defmethod exec-head :symbol [{:keys [sym] :as ast}]
   (let [resolved (env/resolve sym)]
     (case (:head resolved)
-      :static {:head :literal :value (:value resolved)} ;XXX parse/convert.
+      :static (-> resolved :value expression)
       :local resolved
       (error "Unexpected resolve result" ast :resolved resolved))))
 
