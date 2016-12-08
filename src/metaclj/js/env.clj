@@ -20,7 +20,7 @@
 (defn dynamic []
   (if (bound? #'*env*)
     *env*
-    (->Env *ns*)))
+    (->Env (ns-name *ns*))))
 
 (defmacro lexical []
   `(merge ~(into {}
@@ -29,7 +29,7 @@
                 {:head :static
                  :sym (list 'quote sym)
                  :value sym}]))
-          (dynamic)))
+          ~(dynamic)))
 
 (defn with-local [env sym x]
   {:pre [(symbol? sym)]}
@@ -42,7 +42,7 @@
   (let [ns (some-> sym namespace symbol)
         ns (if ns
              (ns-name ((ns-aliases (:ns env)) ns ns))
-             (-> env :ns ns-name))
+             (-> env :ns))
         nm (-> sym name symbol)]
     (some-> (get-in @namespaces [ns nm]) deref)))
 
@@ -52,7 +52,7 @@
           {:keys [ns name]} (meta v)]
       {:head :clojure
        :value value
-       :sym (symbol (str (ns-name ns)) (clj/name sym))})))
+       :sym (symbol (str ns) (clj/name sym))})))
 
 (defn resolve-in [env sym]
   (assert (:ns env))
