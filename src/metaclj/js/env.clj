@@ -22,14 +22,21 @@
     *env*
     (->Env (ns-name *ns*))))
 
+(defn locals [env]
+  (->> env (filter #(-> % first symbol?)) (into {})))
+
 (defmacro lexical []
-  `(merge ~(into {}
-             (for [sym (keys &env)]
-               [(list 'quote sym)
-                {:head :static
-                 :sym (list 'quote sym)
-                 :value sym}]))
-          ~(dynamic)))
+  `(merge ~(dynamic) ; Namespace at macro call-site.
+          (locals (dynamic)) ; Locals defined by JavaScript forms.
+          ;; Locals at macro call-site.
+          ~(->> (keys &env)
+                (map (fn [sym]
+                       [(list 'quote sym)
+                        {:head :static
+                        :sym (list 'quote sym)
+                        :value sym}]))
+                (into {}))
+          ))
 
 (defn with-local [env sym x]
   {:pre [(symbol? sym)]}
@@ -56,7 +63,6 @@
 
 (defn resolve-in [env sym]
   (assert (:ns env))
-  (dbg 'resolve-in env sym)
   (or (resolve-local env sym)
       (resolve-js env sym)
       (resolve-clj env sym)
