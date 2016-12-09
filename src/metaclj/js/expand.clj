@@ -130,7 +130,7 @@
   (block body))
 
 (defmethod exec-head `js/let [{:keys [sym] :as ast}]
-  (change *lets* assoc sym sym)
+  (change! *lets* assoc sym sym)
   (let [ast* (update ast :init expression)]
     (env/declare-local sym)
     ast*))
