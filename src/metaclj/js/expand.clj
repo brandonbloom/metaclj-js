@@ -96,6 +96,12 @@
       (update :clauses #(mapv eval-if-clause %))
       (update :else reify block)))
 
+(defmethod exec-head `js/cond [ast]
+  (-> ast
+      (update :test eval)
+      (update :then reify expression)
+      (update :else reify expression)))
+
 (defmethod exec-head `js/while [ast]
   (-> ast
       (update :test reify expression)

@@ -98,6 +98,13 @@
                    :else (s/? (s/and vector? ::block)))
             form))
 
+(defmethod parse-seq `js/cond [form]
+  (conform! (s/cat :head #{`js/cond}
+                   :test any?
+                   :then any?
+                   :else any?)
+            form))
+
 (s/def ::for-control
   (s/and vector?
          (s/cat :init any?  :test any?  :step any?)))

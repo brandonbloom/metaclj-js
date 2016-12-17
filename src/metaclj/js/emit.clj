@@ -49,8 +49,9 @@
 (defn statement-class [{:keys [head]}]
   (cond
     (#{`js/for `js/while `js/if `js/function} head) :bodied
-    (#{`js/return `js/let `js/set! `js/break `js/continue
-       `js/++ `js/debugger :invoke} head) :terminated
+    (#{`js/return `js/let `js/set! `js/break `js/continue `js/cond
+       `js/++ `js/debugger :invoke :literal `js/strict-infix}
+     head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
 (defn pstmt [ast]
@@ -76,6 +77,9 @@
              [:span " else if " (pretty-if-clause elif)])
            (when else
              [:span " else " (pretty else)])]))
+
+(defmethod pretty `js/cond [{:keys [test then else]}]
+  [:span (pexpr test) " ? " (pexpr then) " : " (pexpr else)])
 
 (defmethod pretty `js/++ [{:keys [place]}]
   [:span "++" (pretty place)])

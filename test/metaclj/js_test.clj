@@ -94,6 +94,14 @@
     3
 
     (iife
+      (return (cond true 1 2)))
+    1
+
+    (iife
+      (return (cond false 1 2)))
+    2
+
+    (iife
       (let x 0)
       (while true
         (++ x)
