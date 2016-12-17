@@ -1,20 +1,13 @@
 (ns metaclj.js-test
   (:refer-clojure :exclude [eval])
   (:require [clojure.test :refer :all]
-            [metaclj.js :as js :refer [js]])
-  (:import (org.mozilla.javascript Context)))
+            [metaclj.js :as js :refer [js]]
+            [metaclj.js.rhino :as rhino :refer [undefined]]))
 
 (js/require 'metaclj.js.core :refer :all)
 
-(def undefined (org.mozilla.javascript.Undefined/instance))
-
-(defn js= [x y]
-  (if (or (number? x) (number? y))
-    (== x y)
-    (= x y)))
-
 (deftest eval-test
-  (are [form expected] (js= (js/eval form) expected)
+  (are [form expected] (rhino/= (js/eval form) expected)
 
     nil   nil
     "x"   "x"
@@ -144,29 +137,29 @@
 
 (deftest cross-stage-test
   (let [x 1]
-    (is (js= (js/eval x) 1)))
+    (is (rhino/= (js/eval x) 1)))
   (let [x (js 1)]
-    (is (js= (js/eval x) 1)))
+    (is (rhino/= (js/eval x) 1)))
   (let [xs ["a" "b"]]
-    (is (js= (js/eval xs) ["a" "b"])))
+    (is (rhino/= (js/eval xs) ["a" "b"])))
   (let [m {"a" "b"}]
-    (is (js= (js/eval m) {"a" "b"})))
+    (is (rhino/= (js/eval m) {"a" "b"})))
   )
 
 (deftest meta-symbol-test
 
   (let [x (gensym)]
-    (is (js= (js/eval
-                (iife
-                  (let ~x 1)
-                  (return x)))
-             1)))
+    (is (rhino/= (js/eval
+                   (iife
+                     (let ~x 1)
+                     (return x)))
+                1)))
 
    (let [x (gensym)
          a (js (let ~x 2))
          b (js (return x))]
-     (is (js= (js/eval (iife a b))
-              2)))
+     (is (rhino/= (js/eval (iife a b))
+                  2)))
 
   )
 

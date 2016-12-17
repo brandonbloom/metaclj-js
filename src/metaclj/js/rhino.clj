@@ -1,9 +1,8 @@
 (ns metaclj.js.rhino
+  (:refer-clojure :exclude [=])
   (:import (org.mozilla.javascript Context)))
 
-;;XXX context cleanup etc.
 ;; See: https://developer.mozilla.org/en-US/docs/Mozilla/Projects/Rhino/Embedding_tutorial
-
 
 (defn enter-context []
   (doto (Context/enter)
@@ -21,6 +20,13 @@
 (defn eval-string [s]
   (with-context ctx
     (.evaluateString ctx scope s "<clj>" 1 nil)))
+
+(def undefined (org.mozilla.javascript.Undefined/instance))
+
+(defn = [x y]
+  (if (or (number? x) (number? y))
+    (== x y)
+    (clojure.core/= x y)))
 
 (comment
   (eval-string "this")
