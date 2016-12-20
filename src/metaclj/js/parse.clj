@@ -156,3 +156,7 @@
 (defmethod parse-seq `js/do [form]
   (conform! (s/cat :head #{`js/do} :body ::block)
             form))
+
+(defmethod parse-seq `js/throw [form]
+  (conform! (s/cat :head #{`js/throw} :expr any?)
+            form))

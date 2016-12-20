@@ -50,7 +50,7 @@
   (cond
     (#{`js/for `js/while `js/if `js/function} head) :bodied
     (#{`js/return `js/let `js/set! `js/break `js/continue `js/cond
-       `js/++ `js/debugger :invoke :literal `js/strict-infix}
+       `js/++ `js/debugger :invoke :literal `js/strict-infix `js/throw}
      head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
@@ -152,3 +152,6 @@
   [:group (pexpr f) "("
           (interpose [:span "," :line] (map pexpr args))
           ")"])
+
+(defmethod pretty `js/throw [{:keys [expr]}]
+  [:span "throw " (pexpr expr)])

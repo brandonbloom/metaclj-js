@@ -133,6 +133,11 @@
     ((fn [x y] [y x]) "a" "b")
     ["b" "a"]
 
+    ;(iife
+    ;  ;XXX try/catch
+    ;  (throw 1))
+    ;1
+
     ))
 
 (deftest cross-stage-test

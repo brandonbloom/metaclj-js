@@ -192,3 +192,6 @@
 
 (defmethod exec-head `js/void [{:keys [expr]}]
   {:head `js/void :expr (expression expr)})
+
+(defmethod exec-head `js/throw [{:keys [expr]}]
+  {:head `js/throw :expr (expression expr)})
