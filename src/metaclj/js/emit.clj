@@ -37,7 +37,7 @@
   java.lang.Boolean
   (-pretty [x] (if x "true" "false"))
   clojure.lang.Symbol
-  (-pretty [x] (str x)) ;XXX munging
+  (-pretty [x] (-> x munge str))
   )
 
 (defmethod pretty :literal [{:keys [value]}]
