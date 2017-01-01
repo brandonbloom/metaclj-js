@@ -1,9 +1,10 @@
 (ns metaclj.js
-  (:refer-clojure :exclude [require eval])
+  (:refer-clojure :exclude [require eval compile])
   (:require [clojure.core :as clj]
             [clojure.spec :as s]
             [metaclj.js.core :as js]
             [metaclj.js.env :as env]
+            [metaclj.js.quote :as q]
             [metaclj.js.expand :refer [expand]]
             [metaclj.js.emit :refer [emit]]
             [metaclj.js.rhino :refer [eval-string]]))
@@ -12,6 +13,10 @@
 
 (defn compile-out [x]
   (-> x expand emit))
+
+(defn compile [x]
+  (with-out-str
+    (compile-out x)))
 
 (defmacro js [& forms]
   (with-meta `(metaclj.js.quote/js ~@forms)
@@ -22,4 +27,7 @@
 
 (defmacro eval [form]
   (let [q (with-meta `(js ~form) (meta &form))]
-    `(eval-string (with-out-str (compile-out ~q)))))
+    `(eval-string (compile ~q))))
+
+(defn quote? [x]
+  (q/quote? x))
