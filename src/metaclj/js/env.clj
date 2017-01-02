@@ -34,8 +34,8 @@
                 (map (fn [sym]
                        [(list 'quote sym)
                         {:head :static
-                        :sym (list 'quote sym)
-                        :value sym}]))
+                         :sym (list 'quote sym)
+                         :value sym}]))
                 (into {}))
           ))
 
@@ -126,7 +126,9 @@
         exclude (set (:exclude fs))
         to-do (if (= (:refer fs) :all)
                 (keys defs)
-                (or (:refer fs) (:only fs) (keys defs)))]
+                (or (:refer fs) {}))]
+    (when-let [as (:as fs)]
+      (clj/alias as ns-sym))
     (assert (or (empty? to-do) (sequential? to-do))
             ":only/:refer value must be a sequential collection of symbols")
     (doseq [sym to-do

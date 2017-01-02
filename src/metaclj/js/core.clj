@@ -8,8 +8,8 @@
 (alias 'js 'metaclj.js.core)
 
 (env/declare-specials
-  do comma void if cond while ++ for break continue
-  return debugger set! let function strict-infix throw
+  do comma void if cond while ++ for break continue return debugger set!
+  let function strict-infix throw instanceof
 )
 
 ;(defsyntax def (s/cat :name symbol? :init ::js/quote)
@@ -38,3 +38,9 @@
 ;; Kinda like the => syntax, but doesn't bind this.
 (defsyntax fn (s/cat :args vector? :expr any?)
   (js (function ~(:args %) (return ~(:expr %)))))
+
+(defmacro defglobal [& syms]
+  `(do ~@(for [sym syms]
+           `(env/define-var '~sym {:head :global :name '~sym}))))
+
+(defglobal this global window module exports Object Array)

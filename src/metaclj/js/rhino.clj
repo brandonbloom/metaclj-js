@@ -29,5 +29,5 @@
     (clojure.core/= x y)))
 
 (comment
-  (eval-string "this")
+  (eval-string "({} instanceof Object)")
 )

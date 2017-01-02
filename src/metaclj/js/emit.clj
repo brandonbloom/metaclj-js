@@ -46,11 +46,15 @@
 (defmethod pretty :local [{:keys [rename]}]
   (-pretty rename))
 
+(defmethod pretty :global [{:keys [name]}]
+  (-pretty name))
+
 (defn statement-class [{:keys [head]}]
   (cond
     (#{`js/for `js/while `js/if `js/function} head) :bodied
-    (#{`js/return `js/let `js/set! `js/break `js/continue `js/cond
-       `js/++ `js/debugger :invoke :literal `js/strict-infix `js/throw}
+    (#{`js/return `js/let `js/set! `js/break `js/continue `js/cond `js/++
+       `js/debugger :invoke :literal :global `js/strict-infix `js/throw
+       `js/instanceof}
      head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
@@ -155,3 +159,6 @@
 
 (defmethod pretty `js/throw [{:keys [expr]}]
   [:span "throw " (pexpr expr)])
+
+(defmethod pretty `js/instanceof [{:keys [expr type]}]
+  [:span (pexpr expr) " instanceof " (pexpr type)])

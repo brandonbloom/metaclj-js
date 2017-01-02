@@ -75,6 +75,7 @@
     (case (:head resolved)
       :static (-> resolved :value exec)
       :local resolved
+      :global resolved
       (error "Unexpected resolve result" ast :resolved resolved))))
 
 (defmethod exec-head :array [ast]
@@ -195,3 +196,6 @@
 
 (defmethod exec-head `js/throw [{:keys [expr]}]
   {:head `js/throw :expr (expression expr)})
+
+(defmethod exec-head `js/instanceof [{:keys [expr type]}]
+  {:head `js/instanceof :expr (expression expr) :type (expression type)})

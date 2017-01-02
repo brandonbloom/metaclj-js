@@ -160,3 +160,7 @@
 (defmethod parse-seq `js/throw [form]
   (conform! (s/cat :head #{`js/throw} :expr any?)
             form))
+
+(defmethod parse-seq `js/instanceof [form]
+  (conform! (s/cat :head #{`js/instanceof} :expr any? :type any?)
+            form))

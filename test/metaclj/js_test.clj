@@ -138,6 +138,9 @@
     ;  (throw 1))
     ;1
 
+    (iife (return (instanceof this Object)))
+    true
+
     ))
 
 (deftest cross-stage-test
@@ -168,15 +171,10 @@
 
   )
 
-
 (comment
 
-  (time
-    )
+  (js/eval this)
 
-)
-
-(comment
   (party (js js/x))
   (party (let [x 1] (js x)))
   (party (let [x 1] (js ~x)))
