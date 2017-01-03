@@ -55,7 +55,7 @@
     (some-> (get-in @namespaces [ns nm]) deref)))
 
 (defn resolve-clj [env sym]
-  (when-let [v (ns-resolve (:ns env) sym)]
+  (when-let [v (try (ns-resolve (:ns env) sym) (catch Exception _ nil))]
     (let [value @v
           {:keys [ns name]} (meta v)]
       {:head :clojure

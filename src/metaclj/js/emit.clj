@@ -52,9 +52,9 @@
 (defn statement-class [{:keys [head]}]
   (cond
     (#{`js/for `js/while `js/if `js/function} head) :bodied
-    (#{`js/return `js/let `js/set! `js/break `js/continue `js/cond `js/++
-       `js/debugger :invoke :literal :global `js/strict-infix `js/throw
-       `js/instanceof}
+    (#{:apply :literal :global :member
+       `js/return `js/let `js/set! `js/break `js/continue `js/cond `js/++
+       `js/debugger `js/strict-infix `js/throw `js/instanceof `js/new}
      head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
@@ -152,13 +152,20 @@
           "(" (interpose [:span "," :line] (map -pretty params)) ") "
           (pretty body)])
 
-(defmethod pretty :invoke [{:keys [f args]}]
-  [:group (pexpr f) "("
-          (interpose [:span "," :line] (map pexpr args))
-          ")"])
+(defn pretty-args [args]
+  [:span "(" (interpose [:span "," :line] (map pexpr args)) ")"])
+
+(defmethod pretty :apply [{:keys [f args]}]
+  [:group (pexpr f) (pretty-args args)])
 
 (defmethod pretty `js/throw [{:keys [expr]}]
   [:span "throw " (pexpr expr)])
 
 (defmethod pretty `js/instanceof [{:keys [expr type]}]
   [:span (pexpr expr) " instanceof " (pexpr type)])
+
+(defmethod pretty `js/new [{:keys [ctor args]}]
+  [:span "new " (pexpr ctor) (pretty-args args)])
+
+(defmethod pretty :member [{:keys [object property]}]
+  [:span (pexpr object) "." (-pretty property)])

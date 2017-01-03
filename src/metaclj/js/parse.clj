@@ -1,5 +1,6 @@
 (ns metaclj.js.parse
   (:require [clojure.core :as clj]
+            [clojure.string :as str]
             [clojure.spec :as s]
             [metaclj.js.core :as js]
             [metaclj.js.quote]
@@ -26,13 +27,36 @@
 
 (defmulti parse-seq first)
 
-(defn parse-apply [form]
-  (assoc (conform! (s/cat :f any? :args (s/* any?)) form)
-         :head :apply))
+(defn parse-apply [[f & args :as form]]
+  (if (symbol? f)
+    (let [s (name f)]
+      (assert (nil? (namespace f)) "namespaced symbols handled by :invoke")
+      (cond
+        (str/starts-with? s ".-")
+        ,,(if (not= (count args) 1)
+            (error "Expected one argument to property access" form)
+            {:head :member
+             :object (first args)
+             :property (symbol (subs s 2))})
+        (str/ends-with? s ".")
+        ,,(let [sym (symbol (subs s 0 (dec (count s))))]
+            (-parse `(js/new ~sym ~@args)))
+        (str/starts-with? s ".")
+        ,,(if (seq args)
+            (let [sym (symbol (str ".-" (subs s 1)))]
+              (-parse `((~sym ~(first args)) ~@(next args))))
+            (error "Expected target object for method call"))
+        :else {:head :apply :f f :args (vec args)}))
+    {:head :apply :f f :args (vec args)}))
 
 (defmethod parse-seq :default [form]
   (assoc (conform! (s/cat :f symbol? :args (s/* any?)) form)
          :head :invoke))
+
+(defn invokeable? [x]
+  (and (symbol? x)
+       (or (namespace x)
+           (->> x name (re-find #"\.") nil?))))
 
 (extend-protocol Form
 
@@ -44,7 +68,7 @@
   (-parse [s]
     (cond
       (empty? s) (error "empty seq" s)
-      (symbol? (first s)) (parse-seq (cons (-> s first qualify) (next s)))
+      (invokeable? (first s)) (parse-seq (cons (-> s first qualify) (next s)))
       :else (parse-apply s)))
 
   clojure.lang.IPersistentVector
@@ -58,7 +82,13 @@
 
   clojure.lang.Symbol
   (-parse [sym]
-    {:head :symbol :sym sym})
+    (let [[a b] (str/split (name sym) #"\." 2)]
+      (if b
+        {:head :member
+         :object (symbol a)
+         :property (symbol b)}
+        {:head :symbol
+         :sym (symbol (namespace sym) a)})))
 
   metaclj.js.quote.Quote
   (-parse [x]
@@ -163,4 +193,8 @@
 
 (defmethod parse-seq `js/instanceof [form]
   (conform! (s/cat :head #{`js/instanceof} :expr any? :type any?)
+            form))
+
+(defmethod parse-seq `js/new [form]
+  (conform! (s/cat :head #{`js/new} :ctor any? :args (s/* any?))
             form))

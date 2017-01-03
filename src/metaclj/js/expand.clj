@@ -179,23 +179,34 @@
   (let [resolved (env/resolve f)]
     (case (:head resolved)
       :clojure (error (str "cannot invoke Clojure var " (:sym resolved)) ast)
-      :local (-> ast (assoc :f resolved) (update :args #(mapv eval %)))
+      :local (-> ast
+                 (assoc :head :apply :f resolved)
+                 (update :args #(mapv eval %)))
       :macro (expand-macro ast resolved))))
 
 (defmethod exec-head :apply [ast]
   (-> ast
-      (assoc :head :invoke)
       (update :f expression)
       (update :args #(mapv expression %))))
 
-(defmethod exec-head `js/return [{:keys [exprs] :as ast}]
-  {:head `js/return :exprs (mapv expression exprs)})
+(defmethod exec-head `js/return [ast]
+  (update ast :exprs #(mapv expression %)))
 
-(defmethod exec-head `js/void [{:keys [expr]}]
-  {:head `js/void :expr (expression expr)})
+(defmethod exec-head `js/void [ast]
+  (update ast :expr expression))
 
-(defmethod exec-head `js/throw [{:keys [expr]}]
-  {:head `js/throw :expr (expression expr)})
+(defmethod exec-head `js/throw [ast]
+  (update ast :expr expression))
 
-(defmethod exec-head `js/instanceof [{:keys [expr type]}]
-  {:head `js/instanceof :expr (expression expr) :type (expression type)})
+(defmethod exec-head `js/instanceof [ast]
+  (-> ast
+      (update :expr expression)
+      (update :type expression)))
+
+(defmethod exec-head :member [ast]
+  (update ast :object expression))
+
+(defmethod exec-head `js/new [ast]
+  (-> ast
+      (update :ctor expression)
+      (update :args #(mapv expression %))))

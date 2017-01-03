@@ -138,8 +138,15 @@
     ;  (throw 1))
     ;1
 
-    (iife (return (instanceof this Object)))
-    true
+    (iife (return (instanceof this Object)))  true
+
+    (iife (return (new Object)))  {}
+    (iife (return (Object.)))  {}
+    (iife (return (+ "" (new Object "x"))))  "x"
+    (iife (return (+ "" (Object. "x"))))  "x"
+
+    (iife (return (Object.keys {"x" 1})))   ["x"]
+    (iife (return (.keys Object {"x" 1})))  ["x"]
 
     ))
 

@@ -29,5 +29,5 @@
     (clojure.core/= x y)))
 
 (comment
-  (eval-string "({} instanceof Object)")
+  (eval-string "Object.keys({x:1, y:2})")
 )
