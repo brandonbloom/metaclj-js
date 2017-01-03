@@ -6,6 +6,7 @@
 
 (defn enter-context []
   (doto (Context/enter)
+    (.setOptimizationLevel -1) ; Disable 64k limit as per cljs implementation.
     (.setLanguageVersion Context/VERSION_ES6)))
 
 (defmacro with-context [name & body]
