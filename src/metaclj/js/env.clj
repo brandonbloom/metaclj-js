@@ -68,7 +68,7 @@
       (resolve-js env sym)
       (resolve-clj env sym)
       (throw (ex-info (str "undefined: " sym)
-                      {:sym sym :meta (meta sym)}))))
+                      {:sym sym :meta (meta sym) :env env}))))
 
 (defn resolve [sym]
   (resolve-in *env* sym))
