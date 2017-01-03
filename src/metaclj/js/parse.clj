@@ -30,20 +30,23 @@
 (defn parse-apply [[f & args :as form]]
   (if (symbol? f)
     (let [s (name f)]
-      (assert (nil? (namespace f)) "namespaced symbols handled by :invoke")
       (cond
         (str/starts-with? s ".-")
-        ,,(if (not= (count args) 1)
-            (error "Expected one argument to property access" form)
-            {:head :member
-             :object (first args)
-             :property (symbol (subs s 2))})
+        ,,(do (when (not= (count args) 1)
+                (error "Expected one argument to property access" form))
+              (when (namespace f)
+                (error "Cannot access property of namespace" form))
+              {:head :member
+               :object (first args)
+               :property (symbol (subs s 2))})
         (str/ends-with? s ".")
-        ,,(let [sym (symbol (subs s 0 (dec (count s))))]
+        ,,(let [sym (symbol (namespace f) (subs s 0 (dec (count s))))]
             (-parse `(js/new ~sym ~@args)))
         (str/starts-with? s ".")
         ,,(if (seq args)
             (let [sym (symbol (str ".-" (subs s 1)))]
+              (when (namespace f)
+                (error "Cannot call method on namespace" form))
               (-parse `((~sym ~(first args)) ~@(next args))))
             (error "Expected target object for method call"))
         :else {:head :apply :f f :args (vec args)}))
@@ -55,8 +58,7 @@
 
 (defn invokeable? [x]
   (and (symbol? x)
-       (or (namespace x)
-           (->> x name (re-find #"\.") nil?))))
+       (->> x name (re-find #"\.") nil?)))
 
 (extend-protocol Form
 
@@ -85,7 +87,7 @@
     (let [[a b] (str/split (name sym) #"\." 2)]
       (if b
         {:head :member
-         :object (symbol a)
+         :object (symbol (namespace sym) a)
          :property (symbol b)}
         {:head :symbol
          :sym (symbol (namespace sym) a)})))
