@@ -16,11 +16,27 @@
        (finally
          (Context/exit)))))
 
-(def scope (with-context ctx (.initStandardObjects ctx)))
-
-(defn eval-string [s]
+(def scope
   (with-context ctx
-    (.evaluateString ctx scope s "<clj>" 1 nil)))
+    (.initStandardObjects ctx)))
+
+(def security-domain nil)
+
+(defn eval-string
+  ([s] (eval-string s {}))
+  ([s opts]
+   (with-context ctx
+     (.evaluateString ctx (:scope opts scope)
+                      s (:file opts "<clj>") (:line opts 1)
+                      security-domain))))
+
+(defn eval-reader
+  ([r] (eval-reader r {}))
+  ([r opts]
+   (with-context ctx
+     (.evaluateReader ctx (:scope opts scope)
+                      r (or (:file opts) (pr-str r)) (:line opts 1)
+                      security-domain))))
 
 (def undefined (org.mozilla.javascript.Undefined/instance))
 

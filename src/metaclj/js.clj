@@ -7,7 +7,7 @@
             [metaclj.js.quote :as q]
             [metaclj.js.expand :refer [expand]]
             [metaclj.js.emit :refer [emit]]
-            [metaclj.js.rhino :refer [eval-string]]))
+            [metaclj.js.rhino :as rhino]))
 
 (env/require-js 'metaclj.js.core :refer :all)
 
@@ -27,7 +27,7 @@
 
 (defmacro eval [form]
   (let [q (with-meta `(js ~form) (meta &form))]
-    `(eval-string (compile ~q))))
+    `(rhino/eval-string (compile ~q))))
 
 (defn quote? [x]
   (q/quote? x))
