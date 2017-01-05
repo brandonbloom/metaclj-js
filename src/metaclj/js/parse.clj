@@ -173,7 +173,7 @@
 
 (defmethod parse-seq `js/function [form]
   (conform! (s/cat :head #{`js/function}
-                   :name (s/? symbol?)
+                   :name (s/? (s/nilable symbol?))
                    :params (s/coll-of symbol? :kind vector?)
                    :body ::block)
           form))
