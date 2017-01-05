@@ -105,6 +105,13 @@
     3
 
     (iife
+      (let m {"x" 0})
+      (++ (.-x m))
+      (++ (.-x m))
+      (return (.-x m)))
+    2
+
+    (iife
       (if false [(debugger)]))
     undefined
 

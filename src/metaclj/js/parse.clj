@@ -159,7 +159,7 @@
 (defmethod parse-seq `js/debugger [form]
   (conform! (s/cat :head #{`js/debugger}) form))
 
-(s/def ::place symbol?) ;XXX Support dot access and indexing.
+(s/def ::place any?)
 
 (defmethod parse-seq `js/++ [form]
   (conform! (s/cat :head #{`js/++} :place ::place) form))

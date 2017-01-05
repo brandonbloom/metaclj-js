@@ -109,13 +109,8 @@
       (update :body reify block)))
 
 (defn place [p]
-  (let [ast (parse p)
-        _ (when (not= (:head ast) :symbol)
-            (error "non-symbol places not yet implemented" ast)) ;XXX
-        x (env/resolve p)]
-    (when (not= (:head x) :local) ;XXX
-      (error "places other than locals not yet implemented" ast)) ;XXX
-    x))
+  ;;TODO: Enforce restrictions.
+  (eval p))
 
 (defmethod exec-head `js/++ [ast]
   (update ast :place place))
