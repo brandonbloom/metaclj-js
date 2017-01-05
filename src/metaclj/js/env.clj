@@ -93,7 +93,7 @@
   nil)
 
 (defn define-var [sym v]
-  (assert (nil? (namespace sym)) "cannot define qualified names")
+  (assert (nil? (namespace sym)) (str "cannot define qualified name " sym))
   (define-var* (ns-name *ns*) sym v))
 
 (defmacro declare-specials [& syms]
