@@ -49,7 +49,7 @@
 (defn resolve-js [env sym]
   (let [ns (some-> sym namespace symbol)
         ns (if ns
-             (ns-name ((ns-aliases (:ns env)) ns ns))
+             (some-> (find-ns ((ns-aliases (:ns env)) ns ns)) ns-name)
              (:ns env))
         nm (-> sym name symbol)]
     (some-> (get-in @namespaces [ns nm]) deref)))
