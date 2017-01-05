@@ -9,7 +9,7 @@
 
 (env/declare-specials
   do comma void if cond while ++ for break continue return debugger set!
-  let function strict-infix throw instanceof new
+  let const function strict-infix throw instanceof new
 )
 
 ;(defsyntax def (s/cat :name symbol? :init ::js/quote)

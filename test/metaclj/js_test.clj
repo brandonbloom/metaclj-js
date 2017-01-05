@@ -39,6 +39,11 @@
     6
 
     (iife
+      (const x 2)
+      (return (* x 3)))
+    6
+
+    (iife
       (let x 1)
       (set! x 2)
       (return x))

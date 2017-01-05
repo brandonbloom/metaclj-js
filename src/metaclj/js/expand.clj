@@ -58,14 +58,14 @@
 
 ;;XXX This indicates to me that I haven't quite figured
 ;; out how to deal with chains of lexical scopes.
-(def ^:dynamic *lets*)
+(def ^:dynamic *binds*)
 
 (defmethod exec-head :quote [{:keys [forms env] :as ast}]
   (when (not= (count forms) 1)
     (error "splicing quotes not yet implemented" ast)) ;;XXX
   (let [[ret lets] (env/with (merge env/*env* env)
-                     (binding [*lets* {}]
-                       [(-> forms first exec) *lets*]))]
+                     (binding [*binds* {}]
+                       [(-> forms first exec) *binds*]))]
     (doseq [[k v] lets]
       (env/declare-local k v))
     ret))
@@ -131,11 +131,17 @@
 (defmethod exec-head `js/do [{:keys [body] :as ast}]
   (block body))
 
-(defmethod exec-head `js/let [{:keys [sym] :as ast}]
-  (change! *lets* assoc sym sym)
+(defn exec-bind [{:keys [sym] :as ast}]
+  (change! *binds* assoc sym sym)
   (let [ast* (update ast :init expression)]
     (env/declare-local sym)
     ast*))
+
+(defmethod exec-head `js/let [ast]
+  (exec-bind ast))
+
+(defmethod exec-head `js/const [ast]
+  (exec-bind ast))
 
 (defmethod exec-head `js/break [ast]
   ast)

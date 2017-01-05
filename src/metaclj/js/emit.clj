@@ -53,8 +53,8 @@
   (cond
     (#{`js/for `js/while `js/if `js/function} head) :bodied
     (#{:apply :literal :global :member
-       `js/return `js/let `js/set! `js/break `js/continue `js/cond `js/++
-       `js/debugger `js/strict-infix `js/throw `js/instanceof `js/new}
+       `js/return `js/let `js/const `js/set! `js/break `js/continue `js/cond
+       `js/++ `js/debugger `js/strict-infix `js/throw `js/instanceof `js/new}
      head) :terminated
     :else (throw (ex-info "Unknown statement class" {:head head}))))
 
@@ -102,8 +102,14 @@
 (defmethod pretty :block [{:keys [stmts]}]
   [:group "{" [:nest :break (map pstmt stmts)] "}"])
 
-(defmethod pretty `js/let [{:keys [sym init]}]
-  [:group "let " (-pretty sym) " = " (pexpr init)])
+(defn pretty-bind [token {:keys [sym init]}]
+  [:group token " " (-pretty sym) " = " (pexpr init)])
+
+(defmethod pretty `js/let [ast]
+  (pretty-bind "let" ast))
+
+(defmethod pretty `js/const [ast]
+  (pretty-bind "const" ast))
 
 (defmethod pretty `js/for [{:keys [init test step body]}]
   [:group "for (" [:nest [:line ""]

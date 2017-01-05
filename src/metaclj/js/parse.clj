@@ -167,9 +167,15 @@
 (defmethod parse-seq `js/set! [form]
   (conform! (s/cat :head #{`js/set!} :place ::place :init any?) form))
 
-(defmethod parse-seq `js/let [form]
+(defn bind-spec [head]
   ;;TODO: destructuring.
-  (conform! (s/cat :head #{`js/let} :sym symbol? :init any?) form))
+  (s/cat :head #{head} :sym symbol? :init any?))
+
+(defmethod parse-seq `js/let [form]
+  (conform! (bind-spec `js/let) form))
+
+(defmethod parse-seq `js/const [form]
+  (conform! (bind-spec `js/const) form))
 
 (defmethod parse-seq `js/function [form]
   (conform! (s/cat :head #{`js/function}
