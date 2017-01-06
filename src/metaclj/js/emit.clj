@@ -2,8 +2,6 @@
   (:require [metaclj.js.core :as js]
             [fipp.engine :refer [pprint-document]]))
 
-;;XXX emit a "'use strict';" somewhere! Safari needs it for tail calls.
-
 (defmulti pretty :head)
 
 ;;XXX The ast needs more context!
