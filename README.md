@@ -40,7 +40,7 @@ This evaluates to `120` and is compiled as:
 })()
 ```
 
-Some notes can be found in the [docs directory](./docs).
+Some notes can be found in the [doc directory](./doc).
 Lots more docs to write... eventually... maybe.
 
 
